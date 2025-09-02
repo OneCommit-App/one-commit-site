@@ -135,19 +135,24 @@ function App() {
   const [termsModalOpen, setTermsModalOpen] = useState(false)
   const [currentText, setCurrentText] = useState('')
 
-  const fullText =
-      'Match with Colleges. <span class="text-[#235d48]">Email Coaches.</span> Track Results.'
-    const [displayText, setDisplayText] = useState("")
+  // Typing animation without HTML pauses
+  const p1 = "Match with Colleges."
+  const p2 = " Email Coaches."
+  const p3 = " Track Results."
+  const totalLen = p1.length + p2.length + p3.length
 
-    useEffect(() => {
-      let i = 0
-      const interval = setInterval(() => {
-        setDisplayText(fullText.slice(0, i + 1))
-        i++
-        if (i === fullText.length) clearInterval(interval)
-      }, 40) // typing speed (40ms per character = faster)
-      return () => clearInterval(interval)
-    }, [])
+  const [count, setCount] = useState(0)
+
+  useEffect(() => {
+    let i = 0
+    const interval = setInterval(() => {
+      i += 1
+      setCount(i)
+      if (i >= totalLen) clearInterval(interval)
+    }, 30) // faster typing (30ms per char)
+    return () => clearInterval(interval)
+  }, [])
+
 
   // Form states
   const [betaFormData, setBetaFormData] = useState({
@@ -358,7 +363,16 @@ function App() {
                   <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
                     <div className="mb-12 lg:mb-0">
                       <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-                        <span dangerouslySetInnerHTML={{ __html: displayText }} />
+                        <span>{p1.slice(0, Math.min(count, p1.length))}</span>
+                        <span className="text-[#235d48]">
+                          {p2.slice(0, Math.min(Math.max(count - p1.length, 0), p2.length))}
+                        </span>
+                        <span>
+                          {p3.slice(
+                            0,
+                            Math.min(Math.max(count - p1.length - p2.length, 0), p3.length)
+                          )}
+                        </span>
                         <span className="animate-pulse">|</span>
                       </h1>
                       <p className="text-xl text-gray-600 mb-6">
