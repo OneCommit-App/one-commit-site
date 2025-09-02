@@ -135,7 +135,8 @@ function App() {
   const [termsModalOpen, setTermsModalOpen] = useState(false)
   const [currentText, setCurrentText] = useState('')
 
-  const fullText = "Match with Colleges. Email Coaches. Track Results."
+  const fullText =
+      'Match with Colleges. <span class="text-[#235d48]">Email Coaches.</span> Track Results.'
     const [displayText, setDisplayText] = useState("")
 
     useEffect(() => {
@@ -144,7 +145,7 @@ function App() {
         setDisplayText(fullText.slice(0, i + 1))
         i++
         if (i === fullText.length) clearInterval(interval)
-      }, 70)
+      }, 40) // typing speed (40ms per character = faster)
       return () => clearInterval(interval)
     }, [])
 
@@ -357,7 +358,7 @@ function App() {
                   <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
                     <div className="mb-12 lg:mb-0">
                       <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-                        {displayText}
+                        <span dangerouslySetInnerHTML={{ __html: displayText }} />
                         <span className="animate-pulse">|</span>
                       </h1>
                       <p className="text-xl text-gray-600 mb-6">
