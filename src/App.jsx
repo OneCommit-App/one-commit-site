@@ -15,27 +15,25 @@ import hughProfessional from './assets/images/hugh-professional.png'
 import onecommitLogo from './assets/images/onecommit-logo.png'
 
 // Privacy Policy content
-const privacyPolicyContent = `← Back to Home
+const privacyPolicyContent = `Privacy Policy
 
-# Privacy Policy
-
-**Effective Date:** August 20, 2025
+Effective Date: August 20, 2025
 
 OneCommit ("we," "our," or "us") is committed to protecting your privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our website and services.
 
-## Information We Collect
+Information We Collect
 
-### Personal Information
+Personal Information
 - Name, email address, phone number
 - Academic and athletic information
 - Communication preferences
 
-### Usage Information
+Usage Information
 - Website usage data
 - Email engagement metrics
 - Service interaction data
 
-## How We Use Your Information
+How We Use Your Information
 
 We use your information to:
 - Provide and improve our services
@@ -43,18 +41,18 @@ We use your information to:
 - Send you relevant recruiting opportunities
 - Analyze and improve our platform
 
-## Information Sharing
+Information Sharing
 
 We do not sell your personal information. We may share information:
 - With colleges and coaches (with your consent)
 - With service providers who assist our operations
 - As required by law
 
-## Data Security
+Data Security
 
 We implement appropriate security measures to protect your information against unauthorized access, alteration, disclosure, or destruction.
 
-## Your Rights
+Your Rights
 
 You have the right to:
 - Access your personal information
@@ -62,7 +60,7 @@ You have the right to:
 - Delete your information
 - Opt out of communications
 
-## Contact Us
+Contact Us
 
 If you have questions about this Privacy Policy, contact us at:
 - Email: admin@onecommit.us
@@ -71,29 +69,27 @@ This policy may be updated periodically. We will notify you of significant chang
 `
 
 // Terms of Service content
-const termsOfServiceContent = `← Back to Home
+const termsOfServiceContent = `Terms of Service
 
-# Terms of Service
-
-**Effective Date:** August 20, 2025
+Effective Date: August 20, 2025
 
 Welcome to OneCommit. These Terms of Service ("Terms") govern your use of our website and services.
 
-## Acceptance of Terms
+Acceptance of Terms
 
 By accessing or using OneCommit, you agree to be bound by these Terms and our Privacy Policy.
 
-## Description of Service
+Description of Service
 
 OneCommit is a recruiting platform that helps high school athletes connect with college coaches and programs.
 
-## User Accounts
+User Accounts
 
 - You must provide accurate information when creating an account
 - You are responsible for maintaining account security
 - You must be at least 13 years old to use our services
 
-## Acceptable Use
+Acceptable Use
 
 You agree not to:
 - Use the service for any illegal purpose
@@ -101,34 +97,34 @@ You agree not to:
 - Interfere with the service's operation
 - Violate any applicable laws or regulations
 
-## Intellectual Property
+Intellectual Property
 
 OneCommit retains all rights to our platform, content, and technology. You retain rights to your personal information and content.
 
-## Payment Terms
+Payment Terms
 
 - Subscription fees are billed in advance
 - Refunds are provided according to our refund policy
 - Prices may change with notice
 
-## Limitation of Liability
+Limitation of Liability
 
 OneCommit is provided "as is" without warranties. We are not liable for indirect, incidental, or consequential damages.
 
-## Termination
+Termination
 
 We may terminate or suspend your account for violations of these Terms or for any reason with notice.
 
-## Changes to Terms
+Changes to Terms
 
 We may modify these Terms at any time. Continued use constitutes acceptance of modified Terms.
 
-## Contact Information
+Contact Information
 
 For questions about these Terms, contact us at:
 - Email: admin@onecommit.us
 
-## Governing Law
+Governing Law
 
 These Terms are governed by the laws of Ohio.
 `
@@ -856,7 +852,7 @@ function App() {
                 </div>
                 
                 <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-                  <p className="text-gray-400">&copy; 2024 OneCommit. All rights reserved.</p>
+                  <p className="text-gray-400">&copy; 2025 OneCommit. All rights reserved.</p>
                 </div>
               </div>
             </footer>
