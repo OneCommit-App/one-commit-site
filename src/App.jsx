@@ -149,7 +149,7 @@ function App() {
       i += 1
       setCount(i)
       if (i >= totalLen) clearInterval(interval)
-    }, 30) // faster typing (30ms per char)
+    }, 50) // faster typing (30ms per char)
     return () => clearInterval(interval)
   }, [])
 
