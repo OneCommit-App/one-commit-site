@@ -135,6 +135,19 @@ function App() {
   const [termsModalOpen, setTermsModalOpen] = useState(false)
   const [currentText, setCurrentText] = useState('')
 
+  const fullText = "Match with Colleges. Email Coaches. Track Results."
+    const [displayText, setDisplayText] = useState("")
+
+    useEffect(() => {
+      let i = 0
+      const interval = setInterval(() => {
+        setDisplayText(fullText.slice(0, i + 1))
+        i++
+        if (i === fullText.length) clearInterval(interval)
+      }, 70)
+      return () => clearInterval(interval)
+    }, [])
+
   // Form states
   const [betaFormData, setBetaFormData] = useState({
     firstName: '',
@@ -344,7 +357,7 @@ function App() {
                   <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
                     <div className="mb-12 lg:mb-0">
                       <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-                        <span dangerouslySetInnerHTML={{ __html: currentText }} />
+                        {displayText}
                         <span className="animate-pulse">|</span>
                       </h1>
                       <p className="text-xl text-gray-600 mb-6">
@@ -354,10 +367,18 @@ function App() {
                         OneCommit automatically finds you the right schools, emails coaches directly, and adapts based on what it learns.
                       </p>
                       <div className="flex flex-col sm:flex-row gap-4">
-                        <Button onClick={() => scrollToSection('beta')} size="lg" className="bg-[#235d48] hover:bg-[#1a4435] text-white">
+                        <Button
+                          onClick={() => scrollToSection('beta')}
+                          size="lg"
+                          className="bg-[#235d48] hover:bg-[#1a4435] text-white"
+                        >
                           Join the Waiting List
                         </Button>
-                        <Button onClick={() => scrollToSection('why-onecommit')} variant="outline" size="lg">
+                        <Button
+                          onClick={() => scrollToSection('why-onecommit')}
+                          variant="outline"
+                          size="lg"
+                        >
                           Learn More
                         </Button>
                       </div>
@@ -377,7 +398,11 @@ function App() {
                       </div>
                     </div>
                     <div className="flex justify-center">
-                      <img src={phoneFanImage} alt="OneCommit App" className="max-w-full h-auto" />
+                      <img
+                        src={phoneFanImage}
+                        alt="OneCommit App"
+                        className="max-w-full h-auto"
+                      />
                     </div>
                   </div>
                 </div>
