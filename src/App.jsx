@@ -192,7 +192,7 @@ function App() {
         created_at: new Date().toISOString()
       }
 
-      const { error } = await supabase.from('Waitlist-OneCommit').insert([payload])
+      const { error } = await supabase.from('waitlist').insert([payload])
       if (error) throw error
 
       setBetaSuccess(true)
@@ -219,7 +219,7 @@ function App() {
     setContactError('')
 
     try {
-      const { error } = await supabase.from('Contact-OneCommit').insert([{
+      const { error } = await supabase.from('contact').insert([{
         name: contactFormData.name?.trim(),
         email: contactFormData.email?.trim().toLowerCase(),
         subject: contactFormData.subject || null,
