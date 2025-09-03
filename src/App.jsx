@@ -15,14 +15,13 @@ import onecommitLogo from './assets/images/onecommit-logo.png'
 
 /**
  * --------- LEGAL CONTENT (nicely formatted, current dates) ----------
- * We render with Tailwind Typography (`prose`) to keep headings, bold, lists, etc.
- * You can tweak styles inside <article className="prose ..."> blocks below.
+ * We render with Tailwind Typography (`prose`) for clean, docx-like layout.
  */
 
 // 📅 Effective Date / Last Updated
 const TODAY = 'September 3, 2025'
 
-// PRIVACY — derived from the uploaded document; dates updated; minor formatting for web
+// PRIVACY — long-form HTML content
 const privacyPolicyContent = `
 <h1>Privacy Policy</h1>
 <p><strong>Effective Date:</strong> ${TODAY}<br/><strong>Last Updated:</strong> ${TODAY}</p>
@@ -101,7 +100,7 @@ Since our app is designed for high school student-athletes across various sports
 
 <h2>Your Rights and Choices</h2>
 <ul>
-  <li><strong>Access & Portability</strong> — view and request a copy of your data.</li>
+  <li><strong>Access &amp; Portability</strong> — view and request a copy of your data.</li>
   <li><strong>Correction</strong> — update inaccuracies.</li>
   <li><strong>Deletion</strong> — request deletion (legal/legitimate retention may apply).</li>
   <li><strong>Email Access</strong> — disconnect Gmail/Outlook at any time.</li>
@@ -153,7 +152,7 @@ Support: <a href="mailto:support@onecommit.us">support@onecommit.us</a>
 <p>© 2025 OneCommit LLC. All rights reserved.</p>
 `
 
-// TOS — long-form, production-grade Terms. Adjust jurisdiction as needed.
+// TERMS — long-form HTML content
 const termsOfServiceContent = `
 <h1>Terms of Service</h1>
 <p><strong>Effective Date:</strong> ${TODAY}<br/><strong>Last Updated:</strong> ${TODAY}</p>
@@ -208,7 +207,7 @@ We may add, change, or remove features at any time, including during beta. We ma
   <li>Unless a separate refund policy applies, fees are non-refundable except where required by law.</li>
 </ul>
 
-<h2>8. Coach Communications & Deliverability</h2>
+<h2>8. Coach Communications &amp; Deliverability</h2>
 <ul>
   <li>You understand email deliverability is influenced by many factors (sender reputation, content, recipient filters). We cannot guarantee delivery, opens, or replies.</li>
   <li>You are responsible for the content of outreach and for honoring opt-out/“do not contact” requests.</li>
@@ -293,7 +292,7 @@ function App() {
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false)
   const [termsModalOpen, setTermsModalOpen] = useState(false)
 
-  // Typing animation (no HTML pauses)
+  // Typing animation
   const p1 = 'Match with Colleges.'
   const p2 = ' Email Coaches.'
   const p3 = ' Track Results.'
@@ -472,7 +471,7 @@ function App() {
                       </div>
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-5 w-5 text-[#235d48]" />
-                        <span className="text-sm text-gray-600">Streamlined & Fast</span>
+                        <span className="text-sm text-gray-600">Streamlined &amp; Fast</span>
                       </div>
                       <div className="flex items-center gap-2">
                         <CheckCircle className="h-5 w-5 text-[#235d48]" />
@@ -537,7 +536,7 @@ function App() {
                   <div className="text-center">
                     <div className="w-16 h-16 bg-[#235d48] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">1</div>
                     <h3 className="text-xl font-semibold text-gray-900 mb-4">Match</h3>
-                    <p className="text-gray-600">Match with colleges based on your performance & fit.</p>
+                    <p className="text-gray-600">Match with colleges based on your performance &amp; fit.</p>
                   </div>
                   <div className="text-center">
                     <div className="w-16 h-16 bg-[#235d48] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">2</div>
@@ -589,14 +588,16 @@ function App() {
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                   <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12">The OneCommit Story</h2>
-                  <div className="flex justify-center mb-8">
-                    <div className="w-20 h-20 rounded-full bg-gray-200 overflow-hidden">
-                      <img src={hughProfessional} alt="Hugh Professional" className="w-full h-full object-cover" />
-                    </div>
+                </div>
+                <div className="flex justify-center mb-8">
+                  <div className="w-20 h-20 rounded-full bg-gray-200 overflow-hidden">
+                    <img src={hughProfessional} alt="Hugh Professional" className="w-full h-full object-cover" />
                   </div>
-                  <p className="text-lg text-gray-700 max-w-3xl mx-auto mb-8">
-                    "In early 2024, I began my journey to becoming a college track athlete... thus, OneCommit was born."
-                  </p>
+                </div>
+                <p className="text-lg text-gray-700 max-w-3xl mx-auto mb-8 text-center">
+                  "In early 2024, I began my journey to becoming a college track athlete... thus, OneCommit was born."
+                </p>
+                <div className="text-center">
                   <Button onClick={() => setStoryModalOpen(true)} variant="outline" size="lg">Read the Full Story →</Button>
                 </div>
               </div>
@@ -746,28 +747,24 @@ function App() {
               <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader><DialogTitle>The OneCommit Story</DialogTitle></DialogHeader>
                 <div className="prose prose-lg max-w-none">
-{`In early 2024, I began my journey to becoming a college track athlete...`}
+                  {`In early 2024, I began my journey to becoming a college track athlete...`}
                 </div>
               </DialogContent>
             </Dialog>
 
-            {/* Privacy Policy Modal (nice typography) */}
+            {/* Privacy Policy Modal */}
             <Dialog open={privacyModalOpen} onOpenChange={setPrivacyModalOpen}>
               <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader><DialogTitle>Privacy Policy</DialogTitle></DialogHeader>
-                <article className="prose prose-lg md:prose-xl max-w-none prose-headings:scroll-mt-24 prose-h1:mb-4 prose-h2:mt-8 prose-h2:mb-2 prose-p:leading-relaxed prose-li:marker:text-[#235d48]">
-                  <div dangerouslySetInnerHTML={{ __html: privacyPolicyContent }} />
-                </article>
+                <LegalDoc html={privacyPolicyContent} />
               </DialogContent>
             </Dialog>
 
-            {/* Terms of Service Modal (nice typography) */}
+            {/* Terms of Service Modal */}
             <Dialog open={termsModalOpen} onOpenChange={setTermsModalOpen}>
               <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
                 <DialogHeader><DialogTitle>Terms of Service</DialogTitle></DialogHeader>
-                <article className="prose prose-lg md:prose-xl max-w-none prose-headings:scroll-mt-24 prose-h1:mb-4 prose-h2:mt-8 prose-h2:mb-2 prose-p:leading-relaxed prose-li:marker:text-[#235d48]">
-                  <div dangerouslySetInnerHTML={{ __html: termsOfServiceContent }} />
-                </article>
+                <LegalDoc html={termsOfServiceContent} />
               </DialogContent>
             </Dialog>
           </div>
@@ -777,19 +774,48 @@ function App() {
   )
 }
 
-/** --------- Standalone Pages (nice typography) ---------- */
+/** --------- Standalone Pages (docx-like typography) ---------- */
+
+function LegalDoc({ html }) {
+  return (
+    <article
+      className={[
+        // base typography
+        "prose prose-slate max-w-none",
+        // heading sizes & spacing
+        "prose-h1:text-4xl md:prose-h1:text-5xl prose-h1:font-bold prose-h1:mb-6",
+        "prose-h2:text-2xl md:prose-h2:text-3xl prose-h2:font-semibold prose-h2:mt-10 prose-h2:mb-3",
+        "prose-h3:text-xl md:prose-h3:text-2xl prose-h3:font-semibold prose-h3:mt-6 prose-h3:mb-2",
+        // paragraph & list rhythm
+        "prose-p:leading-relaxed prose-p:my-3",
+        "prose-ul:list-disc prose-ol:list-decimal prose-li:my-1 prose-li:leading-relaxed",
+        // strong & links
+        "prose-strong:font-semibold prose-a:font-medium prose-a:text-[#235d48] hover:prose-a:text-[#1a4435]",
+        // niceties
+        "prose-hr:my-10 prose-blockquote:my-6",
+      ].join(" ")}
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  )
+}
 
 function PageShell({ title, children }) {
   return (
-    <div className="min-h-screen bg-white py-16">
+    <div className="min-h-screen bg-[#f7faf9] py-12 md:py-16">
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="mb-6">
+        <div className="mb-5">
           <Link to="/" className="text-[#235d48] hover:text-[#1a4435] font-medium">← Back to Home</Link>
         </div>
-        <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">{title}</h1>
-        <article className="prose prose-lg md:prose-xl max-w-none prose-headings:scroll-mt-24 prose-h1:mb-4 prose-h2:mt-8 prose-h2:mb-2 prose-p:leading-relaxed prose-li:marker:text-[#235d48]">
+
+        {/* Title bar like a document header */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 py-5 md:px-8 md:py-6 mb-6">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 tracking-tight">{title}</h1>
+        </div>
+
+        {/* Paper-like body */}
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 px-6 py-6 md:px-8 md:py-8">
           {children}
-        </article>
+        </div>
       </div>
     </div>
   )
@@ -798,7 +824,7 @@ function PageShell({ title, children }) {
 function PrivacyPolicyPage() {
   return (
     <PageShell title="Privacy Policy">
-      <div dangerouslySetInnerHTML={{ __html: privacyPolicyContent }} />
+      <LegalDoc html={privacyPolicyContent} />
     </PageShell>
   )
 }
@@ -806,7 +832,7 @@ function PrivacyPolicyPage() {
 function TermsOfServicePage() {
   return (
     <PageShell title="Terms of Service">
-      <div dangerouslySetInnerHTML={{ __html: termsOfServiceContent }} />
+      <LegalDoc html={termsOfServiceContent} />
     </PageShell>
   )
 }
