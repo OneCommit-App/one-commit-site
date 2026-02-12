@@ -3,3 +3,6 @@ dist
 .DS_Store
 .idea
 *.zip
+.env
+.env.local
+.env.*.local
