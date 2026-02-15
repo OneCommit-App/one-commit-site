@@ -460,31 +460,19 @@ function App() {
                     </motion.p>
                   </div>
                   <motion.div className="flex justify-center" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.3 }}>
-                    <img src="/hero-trifold.png" alt="OneCommit: preferences, matched schools, outreach dashboard" className="max-w-full h-auto w-full max-w-lg" />
+                    <div className="w-full max-w-[320px] rounded-xl overflow-hidden bg-black shadow-xl">
+                      <video
+                        className="w-full h-auto object-contain"
+                        autoPlay
+                        muted
+                        loop
+                        playsInline
+                        aria-label="OneCommit app demo"
+                      >
+                        <source src="/demo.mp4" type="video/mp4" />
+                      </video>
+                    </div>
                   </motion.div>
-                </div>
-              </div>
-            </section>
-
-            {/* Demo video — right below hero; full video visible (no crop) */}
-            <section id="demo" className="bg-white py-12 md:py-16">
-              <div className="max-w-[min(400px,100%)] mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-6">
-                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">See it in action</h2>
-                  <p className="text-lg text-gray-600">Quick demo of the app.</p>
-                </div>
-                <div className="rounded-xl overflow-hidden bg-black shadow-xl">
-                  <video
-                    className="w-full h-auto max-h-[70vh] object-contain"
-                    controls
-                    preload="metadata"
-                    playsInline
-                    aria-label="OneCommit app demo"
-                  >
-                    <source src="/demo.mp4" type="video/mp4" />
-                    <source src="/demo.webm" type="video/webm" />
-                    Your browser doesn't support the video tag.
-                  </video>
                 </div>
               </div>
             </section>
