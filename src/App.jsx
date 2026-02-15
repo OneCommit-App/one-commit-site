@@ -5,18 +5,30 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from './components/u
 import { Input } from './components/ui/input'
 import { Label } from './components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select'
-import { CheckCircle, Target, Mail, BarChart3, Users, Clock, Star, Menu, X } from 'lucide-react'
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from './components/ui/collapsible'
+import { CheckCircle, Menu, X, ChevronDown } from 'lucide-react'
 import { useState, useEffect } from 'react'
-import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
+import { motion } from 'framer-motion'
+import { BrowserRouter as Router, Routes, Route, Link, Navigate, useLocation } from 'react-router-dom'
 import { supabase } from './lib/supabase'
-import phoneFanImage from './assets/images/phone-fan.png'
-import hughProfessional from './assets/images/hugh-professional.png'
 import onecommitLogo from './assets/images/onecommit-logo.png'
 
 /**
  * --------- LEGAL CONTENT (nicely formatted, current dates) ----------
  * We render with Tailwind Typography (`prose`) for clean, docx-like layout.
  */
+
+// Scroll to waitlist when URL is /#waitlist (e.g. after redirect from /waitlist)
+function ScrollToWaitlistIfHash() {
+  const location = useLocation()
+  useEffect(() => {
+    if (location.hash === '#waitlist') {
+      const el = document.getElementById('waitlist')
+      if (el) setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'start' }), 200)
+    }
+  }, [location.hash])
+  return null
+}
 
 // 📅 Effective Date / Last Updated
 const TODAY = 'September 3, 2025'
@@ -286,71 +298,71 @@ Questions about these Terms? Email <a href="mailto:admin@onecommit.us">admin@one
 </p>
 `
 
+const TYPING_PHRASES = [
+  'Build your school list in minutes.',
+  'Generate coach emails that don\'t sound generic.',
+  'Track replies like a recruiting CRM.'
+]
+const graduationYears = ['2025','2026','2027','2028','2029','2030']
+
 function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [storyModalOpen, setStoryModalOpen] = useState(false)
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false)
   const [termsModalOpen, setTermsModalOpen] = useState(false)
+  const [screenModal, setScreenModal] = useState(null)
 
-  // Typing animation
-  const p1 = 'Match with Colleges.'
-  const p2 = ' Email Coaches.'
-  const p3 = ' Track Results.'
-  const totalLen = p1.length + p2.length + p3.length
-  const [count, setCount] = useState(0)
+  const [typingIndex, setTypingIndex] = useState(0)
   useEffect(() => {
-    let i = 0
-    const id = setInterval(() => {
-      i += 1
-      setCount(i)
-      if (i >= totalLen) clearInterval(id)
-    }, 45)
-    return () => clearInterval(id)
+    const t = setInterval(() => setTypingIndex((i) => (i + 1) % TYPING_PHRASES.length), 2000)
+    return () => clearInterval(t)
   }, [])
 
-  // Forms
   const [betaFormData, setBetaFormData] = useState({
-    firstName: '', lastName: '', email: '', sport: '',
-    graduationYear: '', state: '', phoneNumber: ''
-  })
-  const [contactFormData, setContactFormData] = useState({
-    name: '', email: '', subject: '', message: ''
+    name: '', email: '', phone: '', grade: '', website_guard: ''
   })
   const [betaSubmitting, setBetaSubmitting] = useState(false)
-  const [contactSubmitting, setContactSubmitting] = useState(false)
   const [betaSuccess, setBetaSuccess] = useState(false)
-  const [contactSuccess, setContactSuccess] = useState(false)
   const [betaError, setBetaError] = useState('')
+
+  const [contactFormData, setContactFormData] = useState({ name: '', email: '', subject: '', message: '' })
+  const [contactSubmitting, setContactSubmitting] = useState(false)
+  const [contactSuccess, setContactSuccess] = useState(false)
   const [contactError, setContactError] = useState('')
 
   const scrollToSection = (id) => {
     const el = document.getElementById(id)
-    if (el) el.scrollIntoView({ behavior: 'smooth' })
+    if (el) {
+      const y = el.getBoundingClientRect().top + window.scrollY - 72
+      window.scrollTo({ top: y, behavior: 'smooth' })
+    }
     setMobileMenuOpen(false)
   }
 
-  // ---------- SUBMIT HANDLERS ----------
   const handleBetaSubmit = async (e) => {
     e.preventDefault()
+    if (betaFormData.website_guard) return
     setBetaSubmitting(true); setBetaError('')
     try {
+      const parts = (betaFormData.name || '').trim().split(/\s+/)
+      const first_name = parts[0] || ''
+      const last_name = parts.slice(1).join(' ') || ''
       const payload = {
-        first_name: betaFormData.firstName?.trim(),
-        last_name: betaFormData.lastName?.trim(),
+        first_name,
+        last_name,
         email: betaFormData.email?.trim().toLowerCase(),
-        sport: betaFormData.sport,
-        grad_year: String(betaFormData.graduationYear || ''),
-        state: betaFormData.state || null,
-        phone: betaFormData.phoneNumber || null,
+        sport: 'Track & Field',
+        grad_year: String(betaFormData.grade || ''),
+        state: null,
+        phone: betaFormData.phone?.trim() || null,
         created_at: new Date().toISOString()
       }
       const { error } = await supabase.from('waitlist').insert([payload])
       if (error) throw error
       setBetaSuccess(true)
-      setBetaFormData({ firstName: '', lastName: '', email: '', sport: '', graduationYear: '', state: '', phoneNumber: '' })
+      setBetaFormData({ name: '', email: '', phone: '', grade: '', website_guard: '' })
     } catch (err) {
       console.error('[waitlist insert error]', err)
-      setBetaError('Something went wrong. Please try again.')
+      setBetaError(err?.message?.includes('duplicate') ? 'This email is already on the list.' : 'Something failed — try again.')
     } finally {
       setBetaSubmitting(false)
     }
@@ -376,23 +388,17 @@ function App() {
       setContactSubmitting(false)
     }
   }
-  // ---------- END SUBMIT HANDLERS ----------
-
-  const sports = [
-    'Track & Field','Cross Country','Football','Basketball','Soccer',
-    'Baseball','Softball','Tennis','Golf','Swimming','Wrestling',
-    'Volleyball','Lacrosse','Hockey','Other'
-  ]
-  const graduationYears = ['2025','2026','2027','2028','2029','2030']
-  const states = ['AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA','HI','ID','IL','IN','IA','KS','KY','LA','ME','MD','MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ','NM','NY','NC','ND','OH','OK','OR','PA','RI','SC','SD','TN','TX','UT','VT','VA','WA','WV','WI','WY']
 
   return (
     <Router>
       <Routes>
         <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
         <Route path="/terms-of-service" element={<TermsOfServicePage />} />
+        <Route path="/waitlist" element={<Navigate to="/#waitlist" replace />} />
         <Route path="/" element={
-          <div className="min-h-screen bg-white">
+          <>
+            <ScrollToWaitlistIfHash />
+            <div className="min-h-screen bg-white">
             {/* Navigation */}
             <nav className="bg-white border-b border-gray-200 sticky top-0 z-50">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -403,13 +409,9 @@ function App() {
                   </div>
                   <div className="hidden md:block">
                     <div className="ml-10 flex items-baseline space-x-4">
-                      <button onClick={() => scrollToSection('why-onecommit')} className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Why OneCommit?</button>
-                      <button onClick={() => scrollToSection('how-it-works')} className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">How It Works</button>
-                      <button onClick={() => scrollToSection('features')} className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Features</button>
-                      <button onClick={() => scrollToSection('demo')} className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Beta Demo</button>
-                      <button onClick={() => scrollToSection('story')} className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Our Story</button>
-                      <button onClick={() => scrollToSection('contact')} className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Contact</button>
-                      <Button onClick={() => scrollToSection('beta')} className="bg-[#235d48] hover:bg-[#1a4435] text-white">Join Beta</Button>
+                      <button onClick={() => scrollToSection('how-it-works')} className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">How it Works</button>
+                      <button onClick={() => scrollToSection('beta-features')} className="text-gray-700 hover:text-gray-900 px-3 py-2 rounded-md text-sm font-medium">Beta Features</button>
+                      <Button onClick={() => scrollToSection('waitlist')} className="bg-[#235d48] hover:bg-[#1a4435] text-white">Join Beta</Button>
                     </div>
                   </div>
                   <div className="md:hidden">
@@ -422,237 +424,222 @@ function App() {
               {mobileMenuOpen && (
                 <div className="md:hidden">
                   <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3 bg-white border-t border-gray-200">
-                    {['why-onecommit','how-it-works','features','demo','story','contact'].map((id) => (
-                      <button key={id} onClick={() => scrollToSection(id)} className="text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium w-full text-left">
-                        {id === 'why-onecommit' ? 'Why OneCommit?' :
-                         id === 'how-it-works' ? 'How It Works' :
-                         id[0].toUpperCase()+id.slice(1)}
-                      </button>
-                    ))}
-                    <Button onClick={() => scrollToSection('beta')} className="bg-[#235d48] hover:bg-[#1a4435] text-white w-full mt-2">Join Beta</Button>
+                    <button onClick={() => scrollToSection('how-it-works')} className="text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium w-full text-left">How it Works</button>
+                    <button onClick={() => scrollToSection('beta-features')} className="text-gray-700 hover:text-gray-900 block px-3 py-2 rounded-md text-base font-medium w-full text-left">Beta Features</button>
+                    <Button onClick={() => scrollToSection('waitlist')} className="bg-[#235d48] hover:bg-[#1a4435] text-white w-full mt-2">Join Beta</Button>
                   </div>
                 </div>
               )}
             </nav>
 
             {/* Hero */}
-            <section className="bg-white py-20">
+            <section className="bg-white py-16 md:py-24">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
+                <div className="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
                   <div className="mb-12 lg:mb-0">
-                    <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-6">
-                      <span>{p1.slice(0, Math.min(count, p1.length))}</span>
-                      <span className="text-[#235d48]">
-                        {p2.slice(0, Math.min(Math.max(count - p1.length, 0), p2.length))}
-                      </span>
-                      <span>
-                        {p3.slice(0, Math.min(Math.max(count - p1.length - p2.length, 0), p3.length))}
-                      </span>
+                    <motion.h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}>
+                      Get recruited faster for Track &amp; Field.
+                    </motion.h1>
+                    <motion.div className="text-xl md:text-2xl text-gray-600 mb-4 min-h-[2.5rem]" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
+                      <span className="text-[#235d48]">{TYPING_PHRASES[typingIndex]}</span>
                       <span className="animate-pulse">|</span>
-                    </h1>
-                    <p className="text-xl text-gray-600 mb-6">
-                      Built for high school athletes who want to get recruited — and want it to be easier.
-                    </p>
-                    <p className="text-lg text-gray-700 mb-8">
-                      OneCommit automatically finds you the right schools, emails coaches directly, and adapts based on what it learns.
-                    </p>
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      <Button onClick={() => scrollToSection('beta')} size="lg" className="bg-[#235d48] hover:bg-[#1a4435] text-white">
-                        Join the Waiting List
+                    </motion.div>
+                    <motion.p className="text-lg text-gray-600 mb-6" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.35 }}>
+                      OneCommit turns your stats + preferences into matched schools, then helps you send outreach emails and track coach replies — all in one place.
+                    </motion.p>
+                    <motion.div className="flex flex-col sm:flex-row gap-4" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.4 }}>
+                      <Button onClick={() => scrollToSection('waitlist')} size="lg" className="bg-[#235d48] hover:bg-[#1a4435] text-white">
+                        Join the Track Beta
                       </Button>
-                      <Button onClick={() => scrollToSection('why-onecommit')} variant="outline" size="lg">
-                        Learn More
+                      <Button type="button" variant="outline" onClick={() => scrollToSection('how-it-works')} className="border-[#235d48] text-[#235d48] hover:bg-[#235d48]/10">
+                        See how it works
                       </Button>
-                    </div>
-                    <div className="flex items-center gap-6 mt-8">
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-[#235d48]" />
-                        <span className="text-sm text-gray-600">Currently Free</span>
+                    </motion.div>
+                    <motion.p className="text-sm text-gray-500 mt-6" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
+                      Track &amp; Field only (for now). Free during beta. Limited spots.
+                    </motion.p>
+                  </div>
+                  <motion.div className="flex justify-center" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.3 }}>
+                    <img src="/hero-trifold.png" alt="OneCommit: preferences, matched schools, outreach dashboard" className="max-w-full h-auto w-full max-w-lg" />
+                  </motion.div>
+                </div>
+              </div>
+            </section>
+
+            {/* Demo video — right below hero; full video visible (no crop) */}
+            <section id="demo" className="bg-white py-12 md:py-16">
+              <div className="max-w-[min(400px,100%)] mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-6">
+                  <h2 className="text-2xl md:text-3xl font-bold text-gray-900 mb-2">See it in action</h2>
+                  <p className="text-lg text-gray-600">Quick demo of the app.</p>
+                </div>
+                <div className="rounded-xl overflow-hidden bg-black shadow-xl">
+                  <video
+                    className="w-full h-auto max-h-[70vh] object-contain"
+                    controls
+                    preload="metadata"
+                    playsInline
+                    aria-label="OneCommit app demo"
+                  >
+                    <source src="/demo.mp4" type="video/mp4" />
+                    <source src="/demo.webm" type="video/webm" />
+                    Your browser doesn't support the video tag.
+                  </video>
+                </div>
+              </div>
+            </section>
+
+            {/* How it works (3 steps) */}
+            <section id="how-it-works" className="bg-white py-20 overflow-hidden">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-14">
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">How it works</h2>
+                  <p className="text-xl text-gray-600">Three steps. You're in control.</p>
+                </div>
+                <div className="grid md:grid-cols-3 gap-8 lg:gap-10">
+                  {[
+                    { step: 1, title: 'Create your profile', desc: 'Add times/marks + GPA/SAT + what you care about.' },
+                    { step: 2, title: 'Get matched schools', desc: 'See Reach/Target labels and match breakdowns (academics, athletics, preferences).' },
+                    { step: 3, title: 'Start outreach + track replies', desc: 'Generate emails, send, and manage replies from one dashboard.' },
+                  ].map((item, i) => (
+                    <motion.div
+                      key={item.step}
+                      className="relative rounded-2xl border border-gray-200 bg-gray-50/50 p-6 md:p-8"
+                      initial={{ opacity: 0, y: 32 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-60px' }}
+                      transition={{ duration: 0.45, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
+                    >
+                      <div className="absolute -top-3 -left-1 w-10 h-10 bg-[#235d48] text-white rounded-full flex items-center justify-center text-lg font-bold shadow-md">{item.step}</div>
+                      <h3 className="text-xl font-semibold text-gray-900 mt-4 mb-2">{item.title}</h3>
+                      <p className="text-gray-600">{item.desc}</p>
+                    </motion.div>
+                  ))}
+                </div>
+                <motion.div className="text-center mt-12" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} transition={{ delay: 0.4 }}>
+                  <Button onClick={() => scrollToSection('waitlist')} size="lg" className="bg-[#235d48] hover:bg-[#1a4435] text-white">Join the Track Beta</Button>
+                </motion.div>
+              </div>
+            </section>
+
+            {/* What's in the beta (4 cards) */}
+            <section id="beta-features" className="bg-gray-50 py-20">
+              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">What's in the beta</h2>
+                  <p className="text-xl text-gray-600">Exact features from the app.</p>
+                </div>
+                <div className="grid md:grid-cols-2 gap-6">
+                  {[
+                    { title: 'Profile Builder', desc: 'Height/weight, PRs, GPA/SAT, links, notable results.' },
+                    { title: 'Preferences Interview → "Must haves"', desc: 'Your answers become clear "must haves" and "preferences."' },
+                    { title: 'SmartAdd + Search', desc: 'Type what you want; save matched schools to your dashboard.' },
+                    { title: 'Outreach Dashboard', desc: 'Generate emails, track sent + replies, and manage threads.' },
+                  ].map((card, i) => (
+                    <motion.div
+                      key={card.title}
+                      initial={{ opacity: 0, y: 24 }}
+                      whileInView={{ opacity: 1, y: 0 }}
+                      viewport={{ once: true, margin: '-40px' }}
+                      transition={{ duration: 0.4, delay: i * 0.08 }}
+                    >
+                      <Card>
+                        <CardHeader><CardTitle className="text-[#1a4435]">{card.title}</CardTitle></CardHeader>
+                        <CardContent><p className="text-gray-600">{card.desc}</p></CardContent>
+                      </Card>
+                    </motion.div>
+                  ))}
+                </div>
+                <motion.p className="text-center text-gray-700 font-medium mt-8 p-4 rounded-lg bg-[#e8f0ed]/60 border border-[#235d48]/30" initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }}>
+                  This beta is Track &amp; Field recruiting only. No other sports yet.
+                </motion.p>
+              </div>
+            </section>
+
+            {/* Screens */}
+            <section id="screens" className="bg-white py-20">
+              <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">Screens</h2>
+                  <p className="text-xl text-gray-600">Profile → match → outreach → track replies.</p>
+                </div>
+                <motion.div className="flex justify-center mb-12" initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+                  <img src="/hero-trifold.png" alt="OneCommit app flow" className="max-w-full h-auto w-full max-w-2xl rounded-xl shadow-lg" />
+                </motion.div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {[
+                    { img: '/product/proof-dashboard.png', title: 'Dashboard' },
+                    { img: '/product/proof-email.png', title: 'Email' },
+                    { img: '/product/proof-engagement.png', title: 'Replies' },
+                    { img: '/product/match.png', title: 'Match' },
+                  ].map((s) => (
+                    <button
+                      key={s.title}
+                      type="button"
+                      onClick={() => setScreenModal(s)}
+                      className="rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md transition-shadow text-left focus:outline-none focus:ring-2 focus:ring-[#235d48]"
+                    >
+                      <div className="aspect-[9/16] bg-gray-100">
+                        <img src={s.img} alt={s.title} className="w-full h-full object-cover object-top" />
                       </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-[#235d48]" />
-                        <span className="text-sm text-gray-600">Streamlined &amp; Fast</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <CheckCircle className="h-5 w-5 text-[#235d48]" />
-                        <span className="text-sm text-gray-600">Real Results</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex justify-center">
-                    <img src={phoneFanImage} alt="OneCommit App" className="max-w-full h-auto" />
-                  </div>
+                      <p className="p-2 text-sm font-medium text-gray-700">{s.title}</p>
+                    </button>
+                  ))}
+                </div>
+                <div className="text-center mt-8">
+                  <Button onClick={() => scrollToSection('waitlist')} variant="outline" className="border-[#235d48] text-[#235d48] hover:bg-[#235d48]/10">Join the Track Beta</Button>
                 </div>
               </div>
             </section>
 
-            {/* Why OneCommit */}
-            <section id="why-onecommit" className="bg-white py-20">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">
-                    Getting recruited isn't easy — especially if you're not in the top 1%.
-                  </h2>
-                  <p className="text-xl text-gray-600 max-w-3xl mx-auto">
-                    That's why we built OneCommit, the first self-service recruiting copilot built for the overlooked.
-                  </p>
-                </div>
-                <div className="text-center mb-16">
-                  <p className="text-lg text-gray-700 max-w-4xl mx-auto">
-                    OneCommit matches you with schools, drafts and sends personalized emails from your own inbox, tracks real coach engagement, and adapts your list based on what it learns.
-                  </p>
-                </div>
-                <div className="grid md:grid-cols-2 gap-8">
-                  <Card className="bg-red-50 border-red-200">
-                    <CardHeader><CardTitle className="text-red-800">The Reality</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-gray-700">You don't know where you realistically fit among hundreds of programs.</p>
-                      <p className="text-gray-700">You send emails into the void and get ghosted.</p>
-                      <p className="text-gray-700">Legacy platforms cost thousands with no guarantee of results.</p>
-                      <p className="text-gray-700">Profile-based systems put all the power in coaches' hands.</p>
-                    </CardContent>
-                  </Card>
-                  <Card className="bg-[#e8f0ed] border-[#c0d8d0]">
-                    <CardHeader><CardTitle className="text-[#1a4435]">The OneCommit Difference</CardTitle></CardHeader>
-                    <CardContent className="space-y-4">
-                      <p className="text-gray-700">Intelligent matching based on comprehensive data analysis.</p>
-                      <p className="text-gray-700">Real emails from your account that coaches actually open.</p>
-                      <p className="text-gray-700">Affordable pricing that scales with your recruiting journey.</p>
-                      <p className="text-gray-700">You control your timeline and strategy.</p>
-                    </CardContent>
-                  </Card>
-                </div>
-              </div>
-            </section>
-
-            {/* How It Works */}
-            <section id="how-it-works" className="bg-white py-20">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">How It Works</h2>
-                  <p className="text-xl text-gray-600">Simple 3-step process that puts you in control of your recruiting journey</p>
-                </div>
-                <div className="grid md:grid-cols-3 gap-8">
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-[#235d48] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">1</div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Match</h3>
-                    <p className="text-gray-600">Match with colleges based on your performance &amp; fit.</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-[#235d48] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">2</div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Email</h3>
-                    <p className="text-gray-600">Email coaches directly from your inbox.</p>
-                  </div>
-                  <div className="text-center">
-                    <div className="w-16 h-16 bg-[#235d48] text-white rounded-full flex items-center justify-center text-2xl font-bold mx-auto mb-6">3</div>
-                    <h3 className="text-xl font-semibold text-gray-900 mb-4">Track</h3>
-                    <p className="text-gray-600">Track interest and adapt your list based on replies.</p>
-                  </div>
-                </div>
-                <div className="text-center mt-12">
-                  <Button onClick={() => scrollToSection('beta')} size="lg" className="bg-[#235d48] hover:bg-[#1a4435] text-white">Join Beta</Button>
-                </div>
-              </div>
-            </section>
-
-            {/* Features */}
-            <section id="features" className="bg-white py-20">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Features Built for Athletes</h2>
-                  <p className="text-xl text-gray-600">Every feature is designed to work as your recruiting agent.</p>
-                </div>
-                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                  <Card><CardHeader><Target className="h-8 w-8 text-[#235d48] mb-2" /><CardTitle>Smart Matching</CardTitle></CardHeader><CardContent><p className="text-gray-600">Reach/Target/Foundational tiers.</p></CardContent></Card>
-                  <Card><CardHeader><Mail className="h-8 w-8 text-[#235d48] mb-2" /><CardTitle>Gmail/Outlook Integration</CardTitle></CardHeader><CardContent><p className="text-gray-600">Real emails from your account.</p></CardContent></Card>
-                  <Card><CardHeader><BarChart3 className="h-8 w-8 text-[#235d48] mb-2" /><CardTitle>Real-Time Engagement</CardTitle></CardHeader><CardContent><p className="text-gray-600">Opens, clicks, replies.</p></CardContent></Card>
-                  <Card><CardHeader><Clock className="h-8 w-8 text-[#235d48] mb-2" /><CardTitle>Recruiting Calendar</CardTitle></CardHeader><CardContent><p className="text-gray-600">Visits, deadlines, milestones.</p></CardContent></Card>
-                  <Card><CardHeader><Users className="h-8 w-8 text-[#235d48] mb-2" /><CardTitle>Adaptive School List</CardTitle></CardHeader><CardContent><p className="text-gray-600">Adapts as coaches respond.</p></CardContent></Card>
-                  <Card><CardHeader><Star className="h-8 w-8 text-[#235d48] mb-2" /><CardTitle>Commitment Graphics</CardTitle></CardHeader><CardContent><p className="text-gray-600">Announce in style.</p></CardContent></Card>
-                </div>
-              </div>
-            </section>
-
-            {/* Demo */}
-            <section id="demo" className="bg-white py-20">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-                <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">See Your Agent in Action</h2>
-                <p className="text-xl text-gray-600 mb-12">Watch how OneCommit works as your recruiting agent</p>
-                <div className="bg-gray-100 rounded-lg p-12 mb-8"><p className="text-gray-500 text-lg">Demo video coming soon</p></div>
-                <Button onClick={() => scrollToSection('beta')} size="lg" className="bg-[#235d48] hover:bg-[#1a4435] text-white">Join Beta for Early Access</Button>
-              </div>
-            </section>
-
-            {/* Story */}
-            <section id="story" className="bg-white py-20">
-              <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="text-center mb-16">
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-12">The OneCommit Story</h2>
-                </div>
-                <div className="flex justify-center mb-8">
-                  <div className="w-20 h-20 rounded-full bg-gray-200 overflow-hidden">
-                    <img src={hughProfessional} alt="Hugh Professional" className="w-full h-full object-cover" />
-                  </div>
-                </div>
-                <p className="text-lg text-gray-700 max-w-3xl mx-auto mb-8 text-center">
-                  "In early 2024, I began my journey to becoming a college track athlete... thus, OneCommit was born."
-                </p>
-                <div className="text-center">
-                  <Button onClick={() => setStoryModalOpen(true)} variant="outline" size="lg">Read the Full Story →</Button>
-                </div>
-              </div>
-            </section>
-
-            {/* Beta Signup */}
-            <section id="beta" className="bg-white py-20">
+            {/* Waitlist */}
+            <section id="waitlist" className="bg-gray-50 py-20">
               <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-12">
-                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Join the Beta</h2>
-                  <p className="text-xl text-gray-600">Currently free during beta.</p>
+                  <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Join the Beta Waitlist</h2>
+                  <p className="text-xl text-gray-600">Track &amp; Field only. Free during beta. Limited spots.</p>
                 </div>
                 {betaSuccess ? (
                   <Card className="text-center">
-                    <CardContent className="pt-6">
+                    <CardContent className="pt-8 pb-8">
                       <CheckCircle className="h-16 w-16 text-[#235d48] mx-auto mb-4" />
-                      <h3 className="text-2xl font-bold text-gray-900 mb-2">Welcome to OneCommit!</h3>
-                      <p className="text-gray-600">Thanks for joining our beta. We'll be in touch soon with next steps.</p>
+                      <h3 className="text-2xl font-bold text-gray-900 mb-2">You're in.</h3>
+                      <p className="text-gray-600">We'll email you when your wave opens.</p>
                     </CardContent>
                   </Card>
                 ) : (
                   <Card>
                     <CardContent className="pt-6">
-                      <form onSubmit={handleBetaSubmit} className="space-y-6">
-                        <div className="grid md:grid-cols-2 gap-4">
-                          <div><Label htmlFor="firstName">First Name *</Label><Input id="firstName" value={betaFormData.firstName} onChange={(e)=>setBetaFormData({...betaFormData, firstName:e.target.value})} required /></div>
-                          <div><Label htmlFor="lastName">Last Name *</Label><Input id="lastName" value={betaFormData.lastName} onChange={(e)=>setBetaFormData({...betaFormData, lastName:e.target.value})} required /></div>
+                      <form onSubmit={handleBetaSubmit} className="space-y-5">
+                        <div className="absolute -left-[9999px] aria-hidden" tabIndex="-1">
+                          <label htmlFor="website_guard">Leave blank</label>
+                          <input id="website_guard" type="text" name="website_guard" value={betaFormData.website_guard} onChange={(e)=>setBetaFormData({...betaFormData, website_guard:e.target.value})} autoComplete="off" />
                         </div>
-                        <div><Label htmlFor="email">Email *</Label><Input id="email" type="email" value={betaFormData.email} onChange={(e)=>setBetaFormData({...betaFormData, email:e.target.value})} required /></div>
-                        <div className="grid md:grid-cols-3 gap-4">
-                          <div>
-                            <Label htmlFor="sport">Sport *</Label>
-                            <Select value={betaFormData.sport} onValueChange={(v)=>setBetaFormData({...betaFormData, sport:v})}>
-                              <SelectTrigger><SelectValue placeholder="Select Sport" /></SelectTrigger>
-                              <SelectContent>{sports.map(s=><SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label htmlFor="graduationYear">Graduation Year *</Label>
-                            <Select value={betaFormData.graduationYear} onValueChange={(v)=>setBetaFormData({...betaFormData, graduationYear:v})}>
-                              <SelectTrigger><SelectValue placeholder="Select Year" /></SelectTrigger>
-                              <SelectContent>{graduationYears.map(y=><SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
-                            </Select>
-                          </div>
-                          <div>
-                            <Label htmlFor="state">State *</Label>
-                            <Select value={betaFormData.state} onValueChange={(v)=>setBetaFormData({...betaFormData, state:v})}>
-                              <SelectTrigger><SelectValue placeholder="Select State" /></SelectTrigger>
-                              <SelectContent>{states.map(s=><SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
-                            </Select>
-                          </div>
+                        <div>
+                          <Label htmlFor="waitlist-name">Name *</Label>
+                          <Input id="waitlist-name" type="text" placeholder="Your name" value={betaFormData.name} onChange={(e)=>setBetaFormData({...betaFormData, name:e.target.value})} required />
                         </div>
-                        <div><Label htmlFor="phoneNumber">Phone Number</Label><Input id="phoneNumber" type="tel" value={betaFormData.phoneNumber} onChange={(e)=>setBetaFormData({...betaFormData, phoneNumber:e.target.value})} /></div>
-                        {betaError && <div className="bg-red-50 border border-red-200 rounded-md p-4"><p className="text-red-600">{betaError}</p></div>}
-                        <Button type="submit" disabled={betaSubmitting} className="w-full bg-[#235d48] hover:bg-[#1a4435] text-white">{betaSubmitting ? 'Joining...' : 'Join Beta'}</Button>
+                        <div>
+                          <Label htmlFor="waitlist-email">Email *</Label>
+                          <Input id="waitlist-email" type="email" placeholder="you@example.com" value={betaFormData.email} onChange={(e)=>setBetaFormData({...betaFormData, email:e.target.value})} required />
+                        </div>
+                        <div>
+                          <Label htmlFor="waitlist-phone">Phone</Label>
+                          <Input id="waitlist-phone" type="tel" placeholder="(optional)" value={betaFormData.phone} onChange={(e)=>setBetaFormData({...betaFormData, phone:e.target.value})} />
+                        </div>
+                        <div>
+                          <Label htmlFor="waitlist-sport">Sport</Label>
+                          <Input id="waitlist-sport" value="Track & Field" disabled className="bg-gray-100 cursor-not-allowed" />
+                        </div>
+                        <div>
+                          <Label htmlFor="waitlist-grade">Grade</Label>
+                          <Select value={betaFormData.grade} onValueChange={(v)=>setBetaFormData({...betaFormData, grade:v})}>
+                            <SelectTrigger><SelectValue placeholder="Select grade / grad year" /></SelectTrigger>
+                            <SelectContent>{graduationYears.map(y=><SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
+                          </Select>
+                        </div>
+                        {betaError && <div className="bg-red-50 border border-red-200 rounded-md p-3"><p className="text-red-600 text-sm">{betaError}</p></div>}
+                        <Button type="submit" disabled={betaSubmitting} className="w-full bg-[#235d48] hover:bg-[#1a4435] text-white">{betaSubmitting ? 'Joining...' : 'Join Beta Waitlist'}</Button>
                       </form>
                     </CardContent>
                   </Card>
@@ -660,8 +647,8 @@ function App() {
               </div>
             </section>
 
-            {/* Contact */}
-            <section id="contact" className="bg-white py-20">
+            {/* Contact - hidden, footer has mailto */}
+            <section id="contact" className="hidden bg-white py-20">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="text-center mb-16">
                   <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-6">Get in Touch</h2>
@@ -703,52 +690,37 @@ function App() {
             </section>
 
             {/* Footer */}
-            <footer className="bg-gray-900 text-white py-12">
+            <footer className="bg-[#1a4435] text-white py-12">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid md:grid-cols-4 gap-8">
-                  <div>
-                    <div className="flex items-center mb-4">
-                      <img src={onecommitLogo} alt="OneCommit" className="h-8 w-8 rounded-full" />
-                      <span className="ml-2 text-xl font-bold">OneCommit</span>
-                    </div>
-                    <p className="text-gray-400">Your recruiting agent for college athletics.</p>
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+                  <div className="flex items-center">
+                    <img src={onecommitLogo} alt="OneCommit" className="h-8 w-8 rounded-full" />
+                    <span className="ml-2 text-xl font-bold">OneCommit</span>
                   </div>
-                  <div>
-                    <h4 className="text-lg font-semibold mb-4">Product</h4>
-                    <ul className="space-y-2">
-                      <li><button onClick={() => scrollToSection('features')} className="text-gray-400 hover:text-white">Features</button></li>
-                      <li><button onClick={() => scrollToSection('how-it-works')} className="text-gray-400 hover:text-white">How It Works</button></li>
-                      <li><button onClick={() => scrollToSection('demo')} className="text-gray-400 hover:text-white">Beta Demo</button></li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold mb-4">Company</h4>
-                    <ul className="space-y-2">
-                      <li><button onClick={() => scrollToSection('story')} className="text-gray-400 hover:text-white">Our Story</button></li>
-                      <li><button onClick={() => scrollToSection('contact')} className="text-gray-400 hover:text-white">Contact</button></li>
-                    </ul>
-                  </div>
-                  <div>
-                    <h4 className="text-lg font-semibold mb-4">Legal</h4>
-                    <ul className="space-y-2">
-                      <li><Link to="/privacy-policy" className="text-gray-400 hover:text-white">Privacy Policy</Link></li>
-                      <li><Link to="/terms-of-service" className="text-gray-400 hover:text-white">Terms of Service</Link></li>
-                    </ul>
+                  <div className="flex flex-wrap gap-6">
+                    <Link to="/privacy-policy" className="text-[#c0d8d0] hover:text-white">Privacy Policy</Link>
+                    <Link to="/terms-of-service" className="text-[#c0d8d0] hover:text-white">Terms of Service</Link>
+                    <a href="mailto:hello@onecommit.com" className="text-[#c0d8d0] hover:text-white">Contact</a>
                   </div>
                 </div>
-                <div className="border-t border-gray-800 mt-8 pt-8 text-center">
-                  <p className="text-gray-400">&copy; 2025 OneCommit. All rights reserved.</p>
+                <div className="border-t border-[#235d48] mt-8 pt-8 text-center">
+                  <p className="text-[#c0d8d0] text-sm">Track &amp; Field beta — expanding later.</p>
+                  <p className="text-[#c0d8d0] text-sm mt-1">&copy; {new Date().getFullYear()} OneCommit. All rights reserved.</p>
                 </div>
               </div>
             </footer>
 
-            {/* Story Modal */}
-            <Dialog open={storyModalOpen} onOpenChange={setStoryModalOpen}>
-              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-                <DialogHeader><DialogTitle>The OneCommit Story</DialogTitle></DialogHeader>
-                <div className="prose prose-lg max-w-none">
-                  {`In early 2024, I began my journey to becoming a college track athlete...`}
-                </div>
+            {/* Screenshot modal */}
+            <Dialog open={!!screenModal} onOpenChange={() => setScreenModal(null)}>
+              <DialogContent className="max-w-sm p-0 overflow-hidden">
+                {screenModal && (
+                  <>
+                    <DialogHeader className="p-4 pb-0"><DialogTitle>{screenModal.title}</DialogTitle></DialogHeader>
+                    <div className="aspect-[9/16] max-h-[70vh] bg-gray-100">
+                      <img src={screenModal.img} alt={screenModal.title} className="w-full h-full object-cover object-top" />
+                    </div>
+                  </>
+                )}
               </DialogContent>
             </Dialog>
 
@@ -768,6 +740,7 @@ function App() {
               </DialogContent>
             </Dialog>
           </div>
+          </>
         } />
       </Routes>
     </Router>
