@@ -318,7 +318,7 @@ function App() {
   }, [])
 
   const [betaFormData, setBetaFormData] = useState({
-    name: '', email: '', phone: '', grade: '', website_guard: ''
+    first_name: '', last_name: '', email: '', phone: '', grad_year: '', website_guard: ''
   })
   const [betaSubmitting, setBetaSubmitting] = useState(false)
   const [betaSuccess, setBetaSuccess] = useState(false)
@@ -343,26 +343,29 @@ function App() {
     if (betaFormData.website_guard) return
     setBetaSubmitting(true); setBetaError('')
     try {
-      const parts = (betaFormData.name || '').trim().split(/\s+/)
-      const first_name = parts[0] || ''
-      const last_name = parts.slice(1).join(' ') || ''
+      // Payload keys match waitlist table exactly: first_name, last_name, email, sport, grad_year, state, phone (id & created_at are DB defaults)
       const payload = {
-        first_name,
-        last_name,
-        email: betaFormData.email?.trim().toLowerCase(),
+        first_name: (betaFormData.first_name || '').trim(),
+        last_name: (betaFormData.last_name || '').trim(),
+        email: (betaFormData.email || '').trim().toLowerCase(),
         sport: 'Track & Field',
-        grad_year: String(betaFormData.grade || ''),
+        grad_year: String(betaFormData.grad_year || ''),
         state: null,
-        phone: betaFormData.phone?.trim() || null,
-        created_at: new Date().toISOString()
+        phone: (betaFormData.phone || '').trim() || null
       }
       const { error } = await supabase.from('waitlist').insert([payload])
       if (error) throw error
       setBetaSuccess(true)
-      setBetaFormData({ name: '', email: '', phone: '', grade: '', website_guard: '' })
+      setBetaFormData({ first_name: '', last_name: '', email: '', phone: '', grad_year: '', website_guard: '' })
     } catch (err) {
       console.error('[waitlist insert error]', err)
-      setBetaError(err?.message?.includes('duplicate') ? 'This email is already on the list.' : 'Something failed — try again.')
+      const msg = err?.message || err?.error_description || ''
+      setBetaError(
+        msg.includes('duplicate') || msg.includes('unique') ? 'This email is already on the list.' :
+        msg.includes('JWT') || msg.includes('invalid') ? 'Invalid API key. Check Vercel env (or use Legacy anon key in Supabase).' :
+        msg.includes('RLS') || msg.includes('policy') ? 'Database policy blocked. Add INSERT for anon in Supabase.' :
+        msg ? `Failed: ${msg}` : 'Something failed — try again.'
+      )
     } finally {
       setBetaSubmitting(false)
     }
@@ -435,7 +438,7 @@ function App() {
             {/* Hero */}
             <section className="bg-white py-16 md:py-24">
               <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="lg:grid lg:grid-cols-2 lg:gap-12 items-center">
+                <div className="lg:grid lg:grid-cols-2 lg:gap-12 items-start">
                   <div className="mb-12 lg:mb-0">
                     <motion.h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-gray-900 mb-4" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}>
                       Get recruited faster for Track &amp; Field.
@@ -459,8 +462,8 @@ function App() {
                       Track &amp; Field only (for now). Free during beta. Limited spots.
                     </motion.p>
                   </div>
-                  <motion.div className="flex justify-center" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.3 }}>
-                    <div className="w-full max-w-[320px] rounded-xl overflow-hidden bg-black shadow-xl">
+                  <motion.div className="flex justify-center lg:justify-end w-full" initial={{ opacity: 0, scale: 0.98 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.5, delay: 0.3 }}>
+                    <div className="w-full max-w-[420px] lg:max-w-[480px] rounded-xl overflow-hidden bg-black shadow-xl">
                       <video
                         className="w-full h-auto object-contain"
                         autoPlay
@@ -604,8 +607,12 @@ function App() {
                           <input id="website_guard" type="text" name="website_guard" value={betaFormData.website_guard} onChange={(e)=>setBetaFormData({...betaFormData, website_guard:e.target.value})} autoComplete="off" />
                         </div>
                         <div>
-                          <Label htmlFor="waitlist-name">Name *</Label>
-                          <Input id="waitlist-name" type="text" placeholder="Your name" value={betaFormData.name} onChange={(e)=>setBetaFormData({...betaFormData, name:e.target.value})} required />
+                          <Label htmlFor="waitlist-first_name">First name *</Label>
+                          <Input id="waitlist-first_name" type="text" placeholder="First name" value={betaFormData.first_name} onChange={(e)=>setBetaFormData({...betaFormData, first_name:e.target.value})} required />
+                        </div>
+                        <div>
+                          <Label htmlFor="waitlist-last_name">Last name *</Label>
+                          <Input id="waitlist-last_name" type="text" placeholder="Last name" value={betaFormData.last_name} onChange={(e)=>setBetaFormData({...betaFormData, last_name:e.target.value})} required />
                         </div>
                         <div>
                           <Label htmlFor="waitlist-email">Email *</Label>
@@ -620,8 +627,8 @@ function App() {
                           <Input id="waitlist-sport" value="Track & Field" disabled className="bg-gray-100 cursor-not-allowed" />
                         </div>
                         <div>
-                          <Label htmlFor="waitlist-grade">Grade</Label>
-                          <Select value={betaFormData.grade} onValueChange={(v)=>setBetaFormData({...betaFormData, grade:v})}>
+                          <Label htmlFor="waitlist-grad_year">Grad year</Label>
+                          <Select value={betaFormData.grad_year} onValueChange={(v)=>setBetaFormData({...betaFormData, grad_year:v})}>
                             <SelectTrigger><SelectValue placeholder="Select grade / grad year" /></SelectTrigger>
                             <SelectContent>{graduationYears.map(y=><SelectItem key={y} value={y}>{y}</SelectItem>)}</SelectContent>
                           </Select>
